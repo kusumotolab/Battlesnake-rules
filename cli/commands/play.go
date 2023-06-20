@@ -235,6 +235,20 @@ func (gameState *GameState) Run() error {
 		boardServer.SendEvent(gameState.buildFrameEvent(boardState))
 	}
 
+	// Modified: by yabusit ★★★
+	event := gameState.buildFrameEvent(boardState)
+	jsonStr, _ := json.Marshal(event)
+	filename := gameState.gameID + ".json" // TODO should be saved to more adequate folder
+	file, err := os.OpenFile(filename,  os.O_CREATE|os.O_WRONLY, 0644)
+
+	// TODO what happen if file already exists.
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+	file.WriteString(string(jsonStr))
+	file.WriteString("\n")
+
 	log.INFO.Printf("Ruleset: %v, Seed: %v", gameState.GameType, gameState.Seed)
 
 	if gameState.ViewMap {
@@ -292,6 +306,12 @@ func (gameState *GameState) Run() error {
 		if gameState.ViewInBrowser {
 			boardServer.SendEvent(gameState.buildFrameEvent(boardState))
 		}
+
+		// Modified: by yabusit ★★★
+		event := gameState.buildFrameEvent(boardState)
+		jsonStr, _ := json.Marshal(event)
+		file.WriteString(string(jsonStr))
+		file.WriteString("\n")
 
 		if exportGame {
 			for _, snakeState := range gameState.snakeStates {
