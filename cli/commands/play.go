@@ -215,6 +215,13 @@ func (gameState *GameState) Run() error {
 		Map:         gameState.MapName,
 	}
 	boardServer := board.NewBoardServer(boardGame)
+	// Modified: by yabu
+	// save game config
+	// newencoder can change type into json and write it on file
+	// don't need write("/n")
+	filename := "battlelog/" + gameState.gameID + ".json"
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	json.NewEncoder(file).Encode(boardGame)
 
 	if gameState.ViewInBrowser {
 		serverURL, err := boardServer.Listen()
@@ -235,19 +242,16 @@ func (gameState *GameState) Run() error {
 		boardServer.SendEvent(gameState.buildFrameEvent(boardState))
 	}
 
-	// Modified: by yabusit ★★★
+	// Modified: by yabusit
+	// save turn0
 	event := gameState.buildFrameEvent(boardState)
-	jsonStr, _ := json.Marshal(event)
-	filename := gameState.gameID + ".json" // TODO should be saved to more adequate folder
-	file, err := os.OpenFile(filename,  os.O_CREATE|os.O_WRONLY, 0644)
-
+	json.NewEncoder(file).Encode(event)
+	//fmt.Println(event)
 	// TODO what happen if file already exists.
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer file.Close()
-	file.WriteString(string(jsonStr))
-	file.WriteString("\n")
 
 	log.INFO.Printf("Ruleset: %v, Seed: %v", gameState.GameType, gameState.Seed)
 
@@ -306,12 +310,10 @@ func (gameState *GameState) Run() error {
 		if gameState.ViewInBrowser {
 			boardServer.SendEvent(gameState.buildFrameEvent(boardState))
 		}
-
-		// Modified: by yabusit ★★★
+		// Modified: by yabusit
 		event := gameState.buildFrameEvent(boardState)
-		jsonStr, _ := json.Marshal(event)
-		file.WriteString(string(jsonStr))
-		file.WriteString("\n")
+		json.NewEncoder(file).Encode(event)
+		//fmt.Println(event)
 
 		if exportGame {
 			for _, snakeState := range gameState.snakeStates {
@@ -352,6 +354,10 @@ func (gameState *GameState) Run() error {
 			EventType: board.EVENT_TYPE_GAME_END,
 			Data:      boardGame,
 		})
+		/*fmt.Print(board.GameEvent{
+			EventType: board.EVENT_TYPE_GAME_END,
+			Data:      boardGame,
+		})*/
 	}
 
 	if exportGame {
