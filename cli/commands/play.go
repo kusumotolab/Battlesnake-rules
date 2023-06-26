@@ -359,6 +359,13 @@ func (gameState *GameState) Run() error {
 			Data:      boardGame,
 		})*/
 	}
+	// Modified: by yabusit
+	lastFrame := board.GameEvent{
+		EventType: board.EVENT_TYPE_GAME_END,
+		Data:      boardGame,
+	}
+	json.NewEncoder(file).Encode(lastFrame)
+	
 
 	if exportGame {
 		lines, err := gameExporter.FlushToFile(gameState.outputFile)
